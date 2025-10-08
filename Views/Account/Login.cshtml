@@ -1,0 +1,31 @@
+@{
+    Layout = "_Layout";
+    string returnUrl = ViewData["ReturnUrl"] as string ?? "/";
+}
+
+<h2>登入</h2>
+
+<form method="post" asp-action="Login" asp-controller="Account">
+    <input type="hidden" name="returnUrl" value="@returnUrl" />
+    <div>
+        <label>帳號</label><br />
+        <input type="text" name="username" required />
+    </div>
+    <div>
+        <label>密碼</label><br />
+        <input type="password" name="password" required />
+    </div>
+    <div>
+        <button type="submit">登入</button>
+    </div>
+</form>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div style="color:red;">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}

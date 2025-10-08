@@ -1,0 +1,61 @@
+@model HttpFileServer.Models.FolderViewModel
+
+@{
+    ViewData["Title"] = $"檔案清單 - {Model.FolderName}";
+}
+
+<h2 class="mt-4">📁 資料夾：@Model.FolderName</h2>
+
+@if (Model.Files.Length > 0)
+{
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>檔名</th>
+                <th>大小</th>
+                <th>最後修改</th>
+                @if (Model.CanDownload)
+                {
+                    <th>動作</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in Model.Files)
+            {
+                <tr>
+                    <td>@file.Name</td>
+                    <td>@file.Length / 1024 / 1024 MB</td>
+                    <td>@file.LastWriteTime</td>
+                    @if (Model.CanDownload)
+                    {
+                        <td>
+                            <a class="btn btn-sm btn-success" href="/files/@Model.FolderName/download?file=@file.Name">
+                                <i class="bi bi-download"></i> 下載
+                            </a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning" role="alert">
+        此資料夾中沒有檔案。
+    </div>
+}
+
+@if (Model.CanUpload)
+{
+    <h3>上傳檔案</h3>
+    <form method="post" enctype="multipart/form-data" action="/files/@Model.FolderName/upload">
+        <div class="mb-3">
+            <label for="file" class="form-label">選擇檔案：</label>
+            <input type="file" name="file" id="file" class="form-control" required />
+            <small id="fileHelp" class="form-text text-muted">最大檔案大小：5GB</small>
+        </div>
+        <button type="submit" class="btn btn-primary">上傳檔案</button>
+    </form>
+}

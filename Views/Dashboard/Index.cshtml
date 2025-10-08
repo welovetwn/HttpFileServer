@@ -1,0 +1,26 @@
+@model HttpFileServer.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h2>Welcome, @Model.Username!</h2>
+<p>Role: <strong>@Model.Role</strong></p>
+
+<h3>Accessible Shared Folders</h3>
+@if (Model.AccessibleFolders.Any())
+{
+    <ul>
+		@foreach (var folder in Model.AccessibleFolders)
+		{
+			<li>
+				<strong>@folder.Name</strong> — @folder.Path
+				<a class="btn btn-sm btn-primary" href="/files/@folder.Name">瀏覽</a>
+			</li>
+		}
+    </ul>
+}
+else
+{
+    <p class="text-warning">你尚未被授權存取任何資料夾。</p>
+}
