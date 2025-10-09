@@ -1,0 +1,25 @@
+﻿@* /Views/Admin/EditUser.cshtml *@
+@model HttpFileServer.Models.User
+
+@{
+    ViewData["Title"] = "修改使用者密碼";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="EditUser" method="post">
+    <input type="hidden" name="username" value="@Model.Username" />
+
+    <div class="mb-3">
+        <label class="form-label">帳號：</label>
+        <input class="form-control" value="@Model.Username" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">新密碼：</label>
+        <input type="password" class="form-control" name="password" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">更新密碼</button>
+    <a href="/Admin" class="btn btn-secondary">取消</a>
+</form>

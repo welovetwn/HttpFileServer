@@ -1,8 +1,22 @@
 using HttpFileServer.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 設定 Form 上傳限制
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 5L * 1024 * 1024 * 1024; // 5 GB
+    // 你也可以設定 ValueLengthLimit, MemoryBufferThreshold 等，視需要而定
+});
+
+// 設定 Kestrel 限制
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 5L * 1024 * 1024 * 1024; // 5 GB
+});
 
 // 加入 MVC (Controller + Views)
 builder.Services.AddControllersWithViews();

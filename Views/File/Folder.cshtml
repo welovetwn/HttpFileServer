@@ -12,11 +12,12 @@
         <thead class="table-dark">
             <tr>
                 <th>檔名</th>
-                <th>大小</th>
-                <th>最後修改</th>
+                <th class="text-end">大小（Bytes）</th>
+                <th class="text-end">大小（MB）</th>
+                <th class="text-end">最後修改</th>
                 @if (Model.CanDownload)
                 {
-                    <th>動作</th>
+                    <th style="width: 180px;">動作</th>
                 }
             </tr>
         </thead>
@@ -25,15 +26,29 @@
             {
                 <tr>
                     <td>@file.Name</td>
-                    <td>@file.Length / 1024 / 1024 MB</td>
-                    <td>@file.LastWriteTime</td>
+                    <td class="text-end">@string.Format("{0:N0}", file.Length) Bytes</td>
+                    <td class="text-end">@(Math.Round(file.Length / 1024.0 / 1024.0, 1)) MB</td>
+                    <td class="text-end">@file.LastWriteTime</td>
                     @if (Model.CanDownload)
                     {
                         <td>
-                            <a class="btn btn-sm btn-success" href="/files/@Model.FolderName/download?file=@file.Name">
-                                <i class="bi bi-download"></i> 下載
-                            </a>
+                            <div class="d-flex gap-1">
+                                <a class="btn btn-sm btn-success" href="/files/@Model.FolderName/download?file=@file.Name">
+                                    <i class="bi bi-download"></i> 下載
+                                </a>
+
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <form method="post" action="/files/@Model.FolderName/delete" onsubmit="return confirm('確定要刪除檔案嗎？');">
+                                        <input type="hidden" name="fileName" value="@file.Name" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> 刪除
+                                        </button>
+                                    </form>
+                                }
+                            </div>
                         </td>
+
                     }
                 </tr>
             }

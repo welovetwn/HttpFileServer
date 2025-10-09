@@ -13,10 +13,11 @@ namespace HttpFileServer.Controllers
     public class AccountController : Controller
     {
         private readonly ConfigService _configService;
-
-        public AccountController(ConfigService configService)
+        private readonly AuthSessionTracker _sessionTracker;
+        public AccountController(ConfigService configService, AuthSessionTracker sessionTracker)
         {
             _configService = configService;
+            _sessionTracker = sessionTracker;
         }
 
         [HttpGet("login")]
@@ -36,6 +37,8 @@ namespace HttpFileServer.Controllers
                 ViewData["ReturnUrl"] = returnUrl;
                 return View();
             }
+            
+            string sessionId = Guid.NewGuid().ToString();
 
             // 建立 Claims，角色用 Role
             var claims = new List<Claim>
@@ -59,15 +62,10 @@ namespace HttpFileServer.Controllers
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
+            
+            _sessionTracker.SetSession(user.Username, sessionId);
 
             return RedirectToAction("Index", "Home"); // 登入成功，導回首頁或其他頁
-        }
-
-        [HttpGet("logout")]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login");
         }
 
         [HttpGet("denied")]
@@ -75,5 +73,19 @@ namespace HttpFileServer.Controllers
         {
             return View();
         }
+
+        [HttpPost("/logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var username = User.Identity?.Name;
+            if (!string.IsNullOrEmpty(username))
+            {
+                _sessionTracker.RemoveSession(username);
+            }
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Redirect("/login");
+        }
+
     }
 }

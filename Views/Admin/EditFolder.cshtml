@@ -1,0 +1,25 @@
+﻿@* /Views/Admin/EditFolder.cshtml *@
+@model HttpFileServer.Models.SharedFolder
+
+@{
+    ViewData["Title"] = "修改資料夾授權";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="EditFolder" method="post">
+    <input type="hidden" name="folderName" value="@Model.Name" />
+
+    <div class="mb-3">
+        <label class="form-label">資料夾名稱：</label>
+        <input class="form-control" value="@Model.Name" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">允許的使用者（逗號分隔）：</label>
+        <input type="text" class="form-control" name="allowedUsers" value="@string.Join(",", Model.AllowedUsers)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">更新授權</button>
+    <a href="/Admin" class="btn btn-secondary">取消</a>
+</form>

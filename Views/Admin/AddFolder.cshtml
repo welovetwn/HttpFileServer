@@ -1,0 +1,26 @@
+﻿@* /Views/Admin/AddFolder.cshtml *@
+@{
+    ViewData["Title"] = "新增資料夾";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="AddFolder" method="post">
+    <div class="mb-3">
+        <label class="form-label">資料夾名稱：</label>
+        <input type="text" class="form-control" name="folderName" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">資料夾路徑：</label>
+        <input type="text" class="form-control" name="path" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">允許的使用者（逗號分隔）：</label>
+        <input type="text" class="form-control" name="allowedUsers" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">新增資料夾</button>
+    <a href="/Admin" class="btn btn-secondary">取消</a>
+</form>

@@ -4,23 +4,93 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<h2>Welcome, @Model.Username!</h2>
-<p>Role: <strong>@Model.Role</strong></p>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HttpFileServer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: #f4f4f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .dashboard-container {
+            max-width: 900px;
+            margin: auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-container h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .dashboard-container p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+        .folder-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .folder-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .folder-item:hover {
+            background-color: #f1f1f1;
+        }
+        .folder-item a {
+            color: #6c63ff;
+            text-decoration: none;
+        }
+        .folder-item a:hover {
+            text-decoration: underline;
+        }
+        .no-access {
+            color: #d9534f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
-<h3>Accessible Shared Folders</h3>
-@if (Model.AccessibleFolders.Any())
-{
-    <ul>
-		@foreach (var folder in Model.AccessibleFolders)
-		{
-			<li>
-				<strong>@folder.Name</strong> — @folder.Path
-				<a class="btn btn-sm btn-primary" href="/files/@folder.Name">瀏覽</a>
-			</li>
-		}
-    </ul>
-}
-else
-{
-    <p class="text-warning">你尚未被授權存取任何資料夾。</p>
-}
+    <div class="dashboard-container">
+        <h2>您好, @Model.Username!</h2>
+        <p>權限為: <strong>@Model.Role</strong></p>
+
+        <h3>可存取的資料夾</h3>
+        @if (Model.AccessibleFolders.Any())
+        {
+            <ul class="folder-list">
+                @foreach (var folder in Model.AccessibleFolders)
+                {
+                    <li class="folder-item">
+                        <div>
+                            <strong>@folder.Name</strong><br />
+                            <span>@folder.Path</span>
+                        </div>
+                        <a class="btn btn-sm btn-success text-white" href="/files/@folder.Name">瀏覽</a>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="no-access">你尚未被授權存取任何資料夾。</p>
+        }
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

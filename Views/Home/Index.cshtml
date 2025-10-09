@@ -1,8 +1,35 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "首頁";
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var username = isAuthenticated ? User.Identity.Name : "";
+    var isAdmin = User.IsInRole("Admin");
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="text-center">
+        <h1 class="display-4 mb-4">📁 歡迎來到 <strong>HttpFileServer</strong></h1>
+
+        @if (!isAuthenticated)
+        {
+            <p class="lead">請先登入以開始使用檔案分享系統。</p>
+            <a href="/login" class="btn btn-primary btn-lg">🔐 登入系統</a>
+        }
+        else
+        {
+            <div class="alert alert-success">
+                👋 哈囉，<strong>@username</strong>！您目前的角色是 <strong>@(isAdmin ? "Admin" : "User")</strong>。
+            </div>
+
+            <div class="d-grid gap-2 col-6 mx-auto mt-4">
+                <a href="/dashboard" class="btn btn-success btn-lg">📂 前往資料夾總覽</a>
+                @if (isAdmin)
+                {
+                    <a href="/admin" class="btn btn-warning btn-lg">🛠 管理系統</a>
+                }
+                <form method="post" action="/logout">
+                    <button type="submit" class="btn btn-outline-danger btn-lg">🚪 登出</button>
+                </form>
+            </div>
+        }
+    </div>
 </div>

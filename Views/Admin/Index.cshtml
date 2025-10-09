@@ -1,65 +1,65 @@
-@model HttpFileServer.Models.AdminViewModel
-
+@* /Views/Admin/Index.cshtml *@
 @{
-    ViewData["Title"] = "管理後台";
+    ViewData["Title"] = "管理首頁";
 }
 
-<h2>使用者管理</h2>
-<table class="table table-bordered">
+<h2>@ViewData["Title"]</h2>
+
+<div class="mb-3">
+    <a href="/Admin/AddUser" class="btn btn-primary">新增使用者</a>
+    <a href="/Admin/AddFolder" class="btn btn-success">新增資料夾</a>
+</div>
+
+<h3>使用者列表</h3>
+<table class="table">
     <thead>
         <tr>
             <th>帳號</th>
             <th>角色</th>
-            <th>動作</th>
+            <th>操作</th>
         </tr>
     </thead>
     <tbody>
-        @foreach(var user in Model.Users)
+        @foreach (var user in Model.Users)
         {
             <tr>
                 <td>@user.Username</td>
                 <td>@user.Role</td>
                 <td>
-                    <a class="btn btn-sm btn-primary" href="@Url.Action("EditUser", new { username = user.Username })">修改密碼</a>
-                    <form method="post" asp-action="DeleteUser" class="d-inline" onsubmit="return confirm('確定要刪除 @user.Username 嗎？');">
+                    <a href="/Admin/EditUser?username=@user.Username" class="btn btn-warning btn-sm">修改密碼</a>
+                    <form method="post" action="/Admin/DeleteUser" class="d-inline">
                         <input type="hidden" name="username" value="@user.Username" />
-                        <button type="submit" class="btn btn-sm btn-danger">刪除</button>
+                        <button type="submit" class="btn btn-danger btn-sm">刪除</button>
                     </form>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-<a class="btn btn-success" href="@Url.Action("AddUser")">新增使用者</a>
 
-<hr />
-
-<h2>資料夾管理</h2>
-<table class="table table-bordered">
+<h3>資料夾列表</h3>
+<table class="table">
     <thead>
         <tr>
             <th>資料夾名稱</th>
             <th>路徑</th>
-            <th>授權使用者</th>
-            <th>動作</th>
+            <th>操作</th>
         </tr>
     </thead>
     <tbody>
-        @foreach(var folder in Model.Folders)
+        @foreach (var folder in Model.Folders)
         {
             <tr>
                 <td>@folder.Name</td>
                 <td>@folder.Path</td>
-                <td>@string.Join(", ", folder.AllowedUsers)</td>
                 <td>
-                    <a class="btn btn-sm btn-primary" href="@Url.Action("EditFolder", new { folderName = folder.Name })">編輯授權</a>
-                    <form method="post" asp-action="DeleteFolder" class="d-inline" onsubmit="return confirm('確定刪除資料夾 @folder.Name 設定？');">
+                    <a href="/Admin/EditFolder?folderName=@folder.Name" class="btn btn-warning btn-sm">修改授權</a>
+                    <form method="post" action="/Admin/DeleteFolder" class="d-inline">
                         <input type="hidden" name="folderName" value="@folder.Name" />
-                        <button type="submit" class="btn btn-sm btn-danger">刪除</button>
+                        <button type="submit" class="btn btn-danger btn-sm">刪除</button>
                     </form>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-<a class="btn btn-success" href="@Url.Action("AddFolder")">新增資料夾</a>
