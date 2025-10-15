@@ -1,0 +1,28 @@
+{
+  "Users": [
+    {
+      "Username": "admin",
+      "Password": "admin123",
+      "Role": "Admin",
+      "Permission": ""
+    },
+    {
+      "Username": "user1",
+      "Password": "1234",
+      "Role": "User",
+      "Permission": "DownloadOnly"
+    },
+    {
+      "Username": "marty",
+      "Password": "1234",
+      "Role": "User",
+      "Permission": null
+    },
+    {
+      "Username": "viewer",
+      "Password": "1234",
+      "Role": "User",
+      "Permission": null
+    }
+  ]
+}

@@ -1,8 +1,9 @@
 ﻿@* /Views/Admin/EditFolder.cshtml *@
 @model HttpFileServer.Models.SharedFolder
-
+@using HttpFileServer.Models
 @{
     ViewData["Title"] = "修改資料夾授權";
+    var allUsers = ViewBag.AllUsers as List<User> ?? new List<User>();
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -15,11 +16,80 @@
         <input class="form-control" value="@Model.Name" disabled />
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">允許的使用者（逗號分隔）：</label>
-        <input type="text" class="form-control" name="allowedUsers" value="@string.Join(",", Model.AllowedUsers)" />
+    <div id="accessListContainer">
+        @for (int i = 0; i < Model.AccessList.Count; i++)
+        {
+            <div class="row mb-2 access-item">
+                <div class="col-md-5">
+                    <select name="accessList[@i].Username" class="form-select">
+                        @foreach (var user in allUsers)
+                        {
+                            <option value="@user.Username" selected="@(user.Username == Model.AccessList[i].Username)">
+                                @user.Username
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <select name="accessList[@i].Permission" class="form-select">
+                        @foreach (var permission in Enum.GetValues(typeof(PermissionLevel)))
+                        {
+                            <option value="@permission" selected="@(permission.Equals(Model.AccessList[i].Permission))">
+                                @permission
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeAccessItem(this)">移除</button>
+                </div>
+            </div>
+        }
     </div>
 
-    <button type="submit" class="btn btn-primary">更新授權</button>
-    <a href="/Admin" class="btn btn-secondary">取消</a>
+    <button type="button" class="btn btn-secondary mb-3" onclick="addAccessItem()">新增授權</button>
+
+    <div>
+        <button type="submit" class="btn btn-primary">更新授權</button>
+        <a href="/Admin" class="btn btn-secondary">取消</a>
+    </div>
 </form>
+
+@section Scripts {
+    <script>
+        const users = @Html.Raw(Json.Serialize(allUsers.Select(u => u.Username)));
+        const permissions = @Html.Raw(Json.Serialize(Enum.GetNames(typeof(PermissionLevel))));
+
+        function addAccessItem() {
+            const index = document.querySelectorAll('.access-item').length;
+
+            const userOptions = users.map(u => `<option value="${u}">${u}</option>`).join('');
+            const permissionOptions = permissions.map(p => `<option value="${p}">${p}</option>`).join('');
+
+            const row = document.createElement('div');
+            row.className = 'row mb-2 access-item';
+            row.innerHTML = `
+                <div class="col-md-5">
+                    <select name="accessList[${index}].Username" class="form-select">
+                        ${userOptions}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <select name="accessList[${index}].Permission" class="form-select">
+                        ${permissionOptions}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeAccessItem(this)">移除</button>
+                </div>
+            `;
+
+            document.getElementById('accessListContainer').appendChild(row);
+        }
+
+        function removeAccessItem(button) {
+            const row = button.closest('.access-item');
+            if (row) row.remove();
+        }
+    </script>
+}

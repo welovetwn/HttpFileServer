@@ -1,0 +1,50 @@
+{
+  "SharedFolders": [
+    {
+      "Name": "Public",
+      "Path": "D:\\Try\\251008\\Shared\\Public",
+      "AccessList": [
+        {
+          "Username": "admin",
+          "Permission": 0
+        },
+        {
+          "Username": "viewer",
+          "Permission": 1
+        },
+        {
+          "Username": "marty",
+          "Permission": 1
+        }
+      ]
+    },
+    {
+      "Name": "AdminOnly",
+      "Path": "D:\\Try\\251008\\Shared\\Admin",
+      "AccessList": [
+        {
+          "Username": "admin",
+          "Permission": 0
+        }
+      ]
+    },
+    {
+      "Name": "Test",
+      "Path": "D:\\Try\\251008\\Shared\\Test",
+      "AccessList": [
+        {
+          "Username": "marty",
+          "Permission": 0
+        },
+        {
+          "Username": "viewer",
+          "Permission": 1
+        },
+        {
+          "Username": "user1",
+          "Permission": 2
+        }
+      ]
+    }
+  ]
+}

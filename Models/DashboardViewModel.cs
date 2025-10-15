@@ -5,6 +5,6 @@ namespace HttpFileServer.Models
     {
         public string Username { get; set; } = "";
         public string Role { get; set; } = "";
-        public List<SharedFolder> AccessibleFolders { get; set; } = new();
+        public List<FolderAccessViewModel> AccessibleFolders { get; set; } = new();
     }
 }

@@ -12,161 +12,156 @@ namespace HttpFileServer.Services
 {
     public class ConfigService
     {
-        private readonly IConfiguration _configuration;
-        private readonly string _appSettingsPath;
-        private ConfigRoot? _config;
+        private readonly string _userSettingsPath;
+        private readonly string _folderSettingsPath;
+
+        private UserSettings _userSettings;
+        private FolderSettings _folderSettings;
 
         public ConfigService(IConfiguration configuration, IWebHostEnvironment env)
         {
-            _configuration = configuration;
-            // 取得 appsettings.json 實體路徑
-            _appSettingsPath = Path.Combine(env.ContentRootPath, "appsettings.json");
+            _userSettingsPath = Path.Combine(env.ContentRootPath, "user_settings.json");
+            _folderSettingsPath = Path.Combine(env.ContentRootPath, "folder_settings.json");
 
-            LoadConfig();
+            _userSettings = LoadFromFile<UserSettings>(_userSettingsPath) ?? new UserSettings();
+            _folderSettings = LoadFromFile<FolderSettings>(_folderSettingsPath) ?? new FolderSettings();
         }
 
-        private void LoadConfig()
+        private T? LoadFromFile<T>(string path)
         {
-            // 先用 Configuration 讀取
-            _config = _configuration.Get<ConfigRoot>();
-
-            // 也可以考慮直接從檔案反序列化，但一般用 Configuration 就好
-            if (_config == null)
+            if (!File.Exists(path)) return default;
+            try
             {
-                _config = new ConfigRoot
-                {
-                    Users = new List<User>(),
-                    SharedFolders = new List<SharedFolder>()
-                };
+                var json = File.ReadAllText(path);
+                return JsonSerializer.Deserialize<T>(json);
+            }
+            catch
+            {
+                return default;
             }
         }
 
-        private void SaveConfig()
+        private void SaveToFile<T>(string path, T data)
         {
-            if (_config == null) return;
-
-            // 讀取整個 appsettings.json 的 JSON 結構
-            var jsonString = File.ReadAllText(_appSettingsPath);
-            using var jsonDoc = JsonDocument.Parse(jsonString);
-            var root = jsonDoc.RootElement.Clone();
-
-            // 將 Users 與 SharedFolders 替換成新資料
             var options = new JsonSerializerOptions { WriteIndented = true };
-
-            var jsonObj = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonString) ?? new Dictionary<string, object>();
-
-            // 我們手動序列化 Users 與 SharedFolders 到 JSON，再替換原本字串
-            // 這邊簡單用 Dictionary 重新構建
-
-            // 用一個中繼物件替換 Users、SharedFolders
-            jsonObj["Users"] = _config.Users;
-            jsonObj["SharedFolders"] = _config.SharedFolders;
-
-            // 將整個物件序列化回字串
-            var newJsonString = JsonSerializer.Serialize(jsonObj, options);
-
-            // 寫回 appsettings.json
-            File.WriteAllText(_appSettingsPath, newJsonString);
+            var json = JsonSerializer.Serialize(data, options);
+            File.WriteAllText(path, json);
         }
 
-        public List<User> GetUsers()
-        {
-            return _config?.Users ?? new List<User>();
-        }
+        // ========== 使用者操作 ==========
+        public List<User> GetUsers() => _userSettings.Users;
 
-        public User? GetUser(string username)
-        {
-            return GetUsers().FirstOrDefault(u =>
+        public User? GetUser(string username) =>
+            _userSettings.Users.FirstOrDefault(u =>
                 u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
-        }
 
-        public bool UserExists(string username)
-        {
-            return GetUser(username) != null;
-        }
+        public bool UserExists(string username) => GetUser(username) != null;
 
         public void AddUser(User user)
         {
-            if (_config == null) return;
-            _config.Users.Add(user);
-            SaveConfig();
+            _userSettings.Users.Add(user);
+            SaveToFile(_userSettingsPath, _userSettings);
         }
 
         public bool UpdateUserPassword(string username, string newPassword)
         {
             var user = GetUser(username);
             if (user == null) return false;
+
             user.Password = newPassword;
-            SaveConfig();
+            SaveToFile(_userSettingsPath, _userSettings);
             return true;
         }
 
         public bool DeleteUser(string username)
         {
-            if (_config == null) return false;
             var user = GetUser(username);
             if (user == null) return false;
-            _config.Users.Remove(user);
-            SaveConfig();
+
+            _userSettings.Users.Remove(user);
+            SaveToFile(_userSettingsPath, _userSettings);
             return true;
-        }
-
-        public List<SharedFolder> GetFolders()
-        {
-            return _config?.SharedFolders ?? new List<SharedFolder>();
-        }
-
-        public SharedFolder? GetFolderByName(string name)
-        {
-            return GetFolders().FirstOrDefault(f =>
-                f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public void AddFolder(SharedFolder folder)
-        {
-            if (_config == null) return;
-            _config.SharedFolders.Add(folder);
-            SaveConfig();
-        }
-
-        public bool UpdateFolderAllowedUsers(string folderName, List<string> allowedUsers)
-        {
-            var folder = GetFolderByName(folderName);
-            if (folder == null) return false;
-            folder.AllowedUsers = allowedUsers;
-            SaveConfig();
-            return true;
-        }
-
-        public bool DeleteFolder(string folderName)
-        {
-            if (_config == null) return false;
-            var folder = GetFolderByName(folderName);
-            if (folder == null) return false;
-            _config.SharedFolders.Remove(folder);
-            SaveConfig();
-            return true;
-        }
-
-        public List<SharedFolder> GetAccessibleFolders(string username, string role)
-        {
-            if (_config == null) return new List<SharedFolder>();
-
-            if (role == "Admin")
-            {
-                return _config.SharedFolders;
-            }
-
-            return _config.SharedFolders
-                .Where(f => f.AllowedUsers.Contains(username, StringComparer.OrdinalIgnoreCase))
-                .ToList();
         }
 
         public User? ValidateUser(string username, string password)
         {
-            return GetUsers().FirstOrDefault(u =>
-                u.Username.Equals(username, StringComparison.OrdinalIgnoreCase)
-                && u.Password == password);
+            return _userSettings.Users.FirstOrDefault(u =>
+                u.Username.Equals(username, StringComparison.OrdinalIgnoreCase) &&
+                u.Password == password);
         }
+
+        // ========== 資料夾操作 ==========
+        public List<SharedFolder> GetFolders() => _folderSettings.SharedFolders;
+
+        public SharedFolder? GetFolderByName(string name) =>
+            _folderSettings.SharedFolders.FirstOrDefault(f =>
+                f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        public void AddFolder(SharedFolder folder)
+        {
+            _folderSettings.SharedFolders.Add(folder);
+            SaveToFile(_folderSettingsPath, _folderSettings);
+        }
+
+        public bool UpdateFolderAccessList(string folderName, List<FolderAccess> newAccessList)
+        {
+            var folder = _folderSettings.SharedFolders.FirstOrDefault(f =>
+                f.Name.Equals(folderName, StringComparison.OrdinalIgnoreCase));
+
+            if (folder == null) return false;
+
+            folder.AccessList = newAccessList;
+
+            SaveToFile(_folderSettingsPath, _folderSettings);
+
+            return true;
+        }
+
+
+
+        public bool DeleteFolder(string folderName)
+        {
+            var folder = GetFolderByName(folderName);
+            if (folder == null) return false;
+
+            _folderSettings.SharedFolders.Remove(folder);
+            SaveToFile(_folderSettingsPath, _folderSettings);
+            return true;
+        }
+
+        public List<FolderAccessViewModel> GetAccessibleFolders(string username, string role)
+        {
+            var folders = GetFolders(); // ✅ 正確：呼叫已存在的公開方法
+
+            if (role == "Admin")
+            {
+                // Admin 預設 FullAccess 權限
+                return folders.Select(f => new FolderAccessViewModel
+                {
+                    Name = f.Name,
+                    Path = f.Path,
+                    Permission = PermissionLevel.FullAccess
+                }).ToList();
+            }
+
+            return folders
+                .Select(f =>
+                {
+                    var access = f.AccessList.FirstOrDefault(a => a.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+                    if (access != null && access.Permission != PermissionLevel.None)
+                    {
+                        return new FolderAccessViewModel
+                        {
+                            Name = f.Name,
+                            Path = f.Path,
+                            Permission = access.Permission
+                        };
+                    }
+                    return null;
+                })
+                .Where(f => f != null)
+                .ToList()!;
+        }
+
     }
 }

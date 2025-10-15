@@ -1,16 +1,10 @@
-//Models\SharedFolder.cs
+﻿//Models\FolderAccessViewModel.cs
 namespace HttpFileServer.Models
 {
-    public class SharedFolder
+    public class FolderAccessViewModel
     {
         public string Name { get; set; } = "";
         public string Path { get; set; } = "";
-        public List<FolderAccess> AccessList { get; set; } = new();
-    }
-    public class FolderAccess
-    {
-        public string Username { get; set; } = "";
         public PermissionLevel Permission { get; set; } = PermissionLevel.None;
     }
-
 }
