@@ -56,16 +56,22 @@ namespace HttpFileServer.Controllers
                 return RedirectToAction("AddUser");
             }
 
-            _configService.AddUser(new User
+            var newUser = new User
             {
                 Username = username,
                 Password = password,
-                Role = role
-            });
+                Role = role,
+                Permission = role.Equals("Admin", StringComparison.OrdinalIgnoreCase)
+                    ? ((int)PermissionLevel.Admin).ToString()
+                    : null // 或預設為 null，視你是否有需要 User 給預設值
+            };
+
+            _configService.AddUser(newUser);
 
             TempData["SuccessMessage"] = "新增使用者成功";
             return RedirectToAction("Index");
         }
+
 
         // 修改使用者密碼(表單GET)
         [HttpGet]
@@ -128,8 +134,9 @@ namespace HttpFileServer.Controllers
             return View();
         }
 
+        // 新增資料夾(表單POST)
         [HttpPost]
-        public IActionResult AddFolder(string folderName, string path, string allowedUsers)
+        public IActionResult AddFolder(string folderName, string path)
         {
             if (string.IsNullOrWhiteSpace(folderName) || string.IsNullOrWhiteSpace(path))
             {
@@ -137,32 +144,16 @@ namespace HttpFileServer.Controllers
                 return RedirectToAction("AddFolder");
             }
 
-            var accessList = new List<FolderAccess>();
-
-            if (!string.IsNullOrWhiteSpace(allowedUsers))
-            {
-                var usernames = allowedUsers.Split(',').Select(u => u.Trim()).Where(u => !string.IsNullOrEmpty(u));
-                foreach (var username in usernames)
-                {
-                    accessList.Add(new FolderAccess
-                    {
-                        Username = username,
-                        Permission = PermissionLevel.FullAccess // ✅ 預設權限，可自訂
-                    });
-                }
-            }
-
             _configService.AddFolder(new SharedFolder
             {
                 Name = folderName,
                 Path = path,
-                AccessList = accessList
+                AccessList = new List<FolderAccess>() // ⛔ 不再處理使用者清單
             });
 
             TempData["SuccessMessage"] = "新增資料夾成功";
             return RedirectToAction("Index");
         }
-
 
         // 修改資料夾授權(表單GET)
         [HttpGet]

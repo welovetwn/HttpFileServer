@@ -1,4 +1,4 @@
-﻿@* /Views/Admin/AddFolder.cshtml *@
+﻿@* 路徑：/Views/Admin/AddFolder.cshtml *@
 @{
     ViewData["Title"] = "新增資料夾";
 }
@@ -12,15 +12,49 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">資料夾路徑：</label>
-        <input type="text" class="form-control" name="path" required />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">允許的使用者（逗號分隔）：</label>
-        <input type="text" class="form-control" name="allowedUsers" />
+        <label class="form-label">選擇資料夾路徑：</label>
+        <select id="folderPathSelect" name="path" class="form-select" required></select>
     </div>
 
     <button type="submit" class="btn btn-primary">新增資料夾</button>
     <a href="/Admin" class="btn btn-secondary">取消</a>
 </form>
+
+@section Scripts {
+<script>
+    async function loadRootFolders() {
+        try {
+            const res = await fetch('/api/folders?path=');
+            const data = await res.json();
+
+            const select = document.getElementById('folderPathSelect');
+            select.innerHTML = ''; // 清空
+
+            if (!Array.isArray(data)) {
+                console.error('API 回傳格式錯誤:', data);
+                return;
+            }
+
+            if (data.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '(無可選擇的資料夾)';
+                select.appendChild(opt);
+            } else {
+                data.forEach(folder => {
+                    const opt = document.createElement('option');
+                    opt.value = folder.relativePath;
+                    opt.textContent = folder.relativePath;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error('取得資料夾清單失敗:', e);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadRootFolders();
+    });
+</script>
+}

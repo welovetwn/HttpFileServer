@@ -99,7 +99,7 @@ $btnOK.Add_Click({
                 Username   = $textUser.Text
                 Password   = $textPass.Text
                 Role       = 'Admin'
-                Permission = ''
+                Permission = '99'
             }
         )
     } | ConvertTo-Json -Depth 3
