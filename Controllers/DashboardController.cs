@@ -1,4 +1,4 @@
-//Controllers/DashboardController.cs
+﻿//Controllers/DashboardController.cs
 using HttpFileServer.Models;
 using HttpFileServer.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -20,14 +20,18 @@ namespace HttpFileServer.Controllers
         public IActionResult Index()
         {
             var username = User.Identity?.Name ?? "";
-            var role = User.IsInRole("Admin") ? "Admin" : "User";
 
-            var folders = _configService.GetAccessibleFolders(username, role);
+            // ✅ 從 Claims 取出 PermissionLevel
+            var permissionStr = User.FindFirst("PermissionLevel")?.Value ?? "0";
+            int permissionLevel = int.TryParse(permissionStr, out var level) ? level : 0;
+
+            // ✅ 使用 int 權限呼叫 ConfigService
+            var folders = _configService.GetAccessibleFolders(username, permissionLevel);
 
             var model = new DashboardViewModel
             {
                 Username = username,
-                Role = role,
+                PermissionLevel = permissionLevel,
                 AccessibleFolders = folders
             };
 

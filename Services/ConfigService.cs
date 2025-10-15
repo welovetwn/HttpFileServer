@@ -1,11 +1,5 @@
-//Services\ConfigService.cs
+// Services\ConfigService.cs
 using HttpFileServer.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Hosting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 
 namespace HttpFileServer.Services
@@ -117,8 +111,6 @@ namespace HttpFileServer.Services
             return true;
         }
 
-
-
         public bool DeleteFolder(string folderName)
         {
             var folder = GetFolderByName(folderName);
@@ -129,13 +121,12 @@ namespace HttpFileServer.Services
             return true;
         }
 
-        public List<FolderAccessViewModel> GetAccessibleFolders(string username, string role)
+        public List<FolderAccessViewModel> GetAccessibleFolders(string username, int permissionLevel)
         {
-            var folders = GetFolders(); // ✅ 正確：呼叫已存在的公開方法
+            var folders = GetFolders();
 
-            if (role == "Admin")
+            if (permissionLevel == (int)PermissionLevel.Admin)
             {
-                // Admin 預設 FullAccess 權限
                 return folders.Select(f => new FolderAccessViewModel
                 {
                     Name = f.Name,
@@ -162,6 +153,5 @@ namespace HttpFileServer.Services
                 .Where(f => f != null)
                 .ToList()!;
         }
-
     }
 }

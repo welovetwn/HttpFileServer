@@ -13,10 +13,12 @@ namespace HttpFileServer.Controllers
     public class AdminController : Controller
     {
         private readonly ConfigService _configService;
+        private readonly IHostApplicationLifetime _lifetime;
 
-        public AdminController(ConfigService configService)
+        public AdminController(ConfigService configService, IHostApplicationLifetime lifetime)
         {
             _configService = configService;
+            _lifetime = lifetime;
         }
         // Admin首頁，列出用戶和資料夾
         public IActionResult Index()
@@ -267,5 +269,31 @@ namespace HttpFileServer.Controllers
             }
             return RedirectToAction("Index");
         }
+
+        [HttpPost("shutdown")]
+        public IActionResult Shutdown()
+        {
+            // 取得目前使用者的 PermissionLevel
+            var permissionClaim = User.Claims.FirstOrDefault(c => c.Type == "PermissionLevel");
+            if (permissionClaim == null || !int.TryParse(permissionClaim.Value, out int level))
+            {
+                return Unauthorized("使用者無權限資訊");
+            }
+
+            if (level < (int)PermissionLevel.Admin)
+            {
+                return Forbid("權限不足，只有 Admin 可關閉伺服器");
+            }
+
+            // 開啟背景執行緒進行關閉
+            new Thread(() =>
+            {
+                Thread.Sleep(1000); // 等待 1 秒讓回應能傳回前端
+                _lifetime.StopApplication();
+            }).Start();
+
+            return Ok(new { message = "✅ 伺服器即將關閉..." });
+        }
+
     }
 }

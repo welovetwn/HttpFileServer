@@ -1,10 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Discard\**" />
+    <Compile Remove="_publish_tmp\**" />
+    <Content Remove="Discard\**" />
+    <Content Remove="_publish_tmp\**" />
+    <EmbeddedResource Remove="Discard\**" />
+    <EmbeddedResource Remove="_publish_tmp\**" />
+    <None Remove="Discard\**" />
+    <None Remove="_publish_tmp\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Views\Shared\_Layout.cs" />
@@ -15,7 +26,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="HttpFileServer_publish.zip" />
+    <None Remove="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>

@@ -1,12 +1,11 @@
-//Controllers\AccountController.cs
-using HttpFileServer.Models;
+// Controllers\AccountController.cs
+
+using HttpFileServer.Extensions;
 using HttpFileServer.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace HttpFileServer.Controllers
 {
@@ -14,6 +13,7 @@ namespace HttpFileServer.Controllers
     {
         private readonly ConfigService _configService;
         private readonly AuthSessionTracker _sessionTracker;
+
         public AccountController(ConfigService configService, AuthSessionTracker sessionTracker)
         {
             _configService = configService;
@@ -37,15 +37,19 @@ namespace HttpFileServer.Controllers
                 ViewData["ReturnUrl"] = returnUrl;
                 return View();
             }
-            
+
             string sessionId = Guid.NewGuid().ToString();
 
-            // 建立 Claims，角色用 Role
+            // 建立 Claims：加入 Username 與 PermissionLevel（整數）
+            var permission = int.TryParse(user.Permission, out var parsed) ? parsed.ToString() : "0";
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim("PermissionLevel", permission),
+                new Claim(ClaimTypes.Role, user.Role ?? "User")
             };
+
+
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -60,12 +64,12 @@ namespace HttpFileServer.Controllers
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
-            
             _sessionTracker.SetSession(user.Username, sessionId);
 
-            return RedirectToAction("Index", "Home"); // 登入成功，導回首頁或其他頁
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet("denied")]
@@ -86,6 +90,5 @@ namespace HttpFileServer.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Redirect("/login");
         }
-
     }
 }

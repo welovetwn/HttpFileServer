@@ -1,8 +1,24 @@
-﻿@{
+﻿<!-- Views/Home/Index.cshtml -->
+
+@using System.Security.Claims
+@using HttpFileServer.Models
+
+@{
     ViewData["Title"] = "首頁";
     var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-    var username = isAuthenticated ? User.Identity.Name : "";
-    var isAdmin = User.IsInRole("Admin");
+    var username = isAuthenticated ? User.Identity!.Name : "";
+
+    // ✅ 透過 Claim 取得 PermissionLevel（使用者登入時儲存的 Claim）
+    var permissionClaim = User.Claims.FirstOrDefault(c => c.Type == "PermissionLevel");
+    // ✅ 使用 TryParse 避免 FormatException
+    int permissionLevel = 0;
+    if (permissionClaim != null && !string.IsNullOrWhiteSpace(permissionClaim.Value))
+    {
+        int.TryParse(permissionClaim.Value, out permissionLevel);
+    }
+
+    // ✅ 只有 PermissionLevel == Admin (99) 才是 Admin
+    var isAdmin = permissionLevel == (int)PermissionLevel.Admin;
 }
 
 <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
@@ -17,8 +33,7 @@
         else
         {
             <div class="alert alert-success">
-                @* 👋 您好，<strong>@username</strong>！您目前的角色是 <strong>@(isAdmin ? "Admin" : "User")</strong>。 *@
-                <strong>@username 您好!歡迎光臨</strong>。
+                <strong>@username 您好! 歡迎光臨</strong>。
             </div>
 
             <div class="d-grid gap-2 col-6 mx-auto mt-4">

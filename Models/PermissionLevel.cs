@@ -1,12 +1,12 @@
-﻿namespace HttpFileServer.Models
+﻿//\Models\PermissionLevel.cs
+namespace HttpFileServer.Models
 {
     public enum PermissionLevel
     {
-        FullAccess,
-        ReadOnly,
-        DownloadOnly,
-        None
+        Admin = 99,
+        FullAccess = 9,
+        ReadOnly = 1,
+        DownloadOnly = 2,
+        None = 0
     }
 }
-
-
