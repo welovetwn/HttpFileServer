@@ -15,7 +15,7 @@ namespace HttpFileServer.Controllers
     public class FileController : Controller
     {
         private readonly ConfigService _configService;
-        private readonly long _maxFileSize = 5L * 1024 * 1024 * 1024; // 5GB
+        //private readonly long _maxFileSize = 5L * 1024 * 1024 * 1024; // 5GB
 
         public FileController(ConfigService configService)
         {

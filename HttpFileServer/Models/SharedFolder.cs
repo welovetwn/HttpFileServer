@@ -7,10 +7,4 @@ namespace HttpFileServer.Models
         public string Path { get; set; } = "";
         public List<FolderAccess> AccessList { get; set; } = new();
     }
-    public class FolderAccess
-    {
-        public string Username { get; set; } = "";
-        public PermissionLevel Permission { get; set; } = PermissionLevel.None;
-    }
-
 }
