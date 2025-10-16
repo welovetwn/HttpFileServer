@@ -45,6 +45,9 @@
                             <td>
                                 @switch (folder.Permission)
                                 {
+                                    case PermissionLevel.Admin:
+                                        <span class="badge bg-danger text-white">管理權限</span>
+                                        break;
                                     case PermissionLevel.FullAccess:
                                         <span class="badge bg-success">完全存取</span>
                                         break;

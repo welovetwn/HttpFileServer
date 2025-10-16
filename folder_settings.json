@@ -9,6 +9,20 @@
           "Permission": 9
         }
       ]
+    },
+    {
+      "Name": "\u4E0A\u50B3",
+      "Path": "\u6E2C\u8A66\u8CC7\u6599\u593E\\\u4E0A\u50B3",
+      "AccessList": [
+        {
+          "Username": "admin",
+          "Permission": 99
+        },
+        {
+          "Username": "marty",
+          "Permission": 99
+        }
+      ]
     }
   ]
 }

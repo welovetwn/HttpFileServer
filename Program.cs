@@ -3,18 +3,49 @@
 using HttpFileServer.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.Features;
-using System.Net;
 using System.Diagnostics;
+using System.Net;
 using System.Text;
+using System.Text.Json;
 
 string userSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "user_settings.json");
 
 if (!File.Exists(userSettingsPath))
 {
+    // ✅ 插入這段：config.json 預設建立
+    string configPath = Path.Combine(Directory.GetCurrentDirectory(), "config.json");
+    if (!File.Exists(configPath))
+    {
+        Console.WriteLine("🔧 尚未設定 config.json，系統預設處理中...");
+
+        // 預設 BaseFolderPath 為目前目錄
+        string defaultBasePath = Directory.GetCurrentDirectory();
+
+        // 建立 config.json
+        var sampleConfig = new
+        {
+            BaseFolderPath = defaultBasePath
+        };
+
+        File.WriteAllText(
+            configPath,
+            JsonSerializer.Serialize(sampleConfig, new JsonSerializerOptions { WriteIndented = true })
+        );
+
+        Console.WriteLine("✅ 已自動建立 config.json，使用當前執行目錄作為 BaseFolderPath。");
+
+        // ✅ 檢查 BaseFolderPath 下是否有子資料夾，若無則建立預設資料夾
+        if (!Directory.EnumerateDirectories(defaultBasePath).Any())
+        {
+            string newDefaultSubFolder = Path.Combine(defaultBasePath, "HttpFileServer預設資料夾");
+            Directory.CreateDirectory(newDefaultSubFolder);
+            Console.WriteLine($"📁 已自動建立預設子資料夾：{newDefaultSubFolder}");
+        }
+    }
+
+
     Console.WriteLine("🔧 尚未設定 user_settings.json，將執行 GUI 設定工具...");
-
     string ps1Path = Path.Combine(Directory.GetCurrentDirectory(), "admin_setup.ps1");
-
     // 如果腳本尚不存在就建立
     if (!File.Exists(ps1Path))
     {
@@ -143,7 +174,8 @@ var builder = WebApplication.CreateBuilder(args);
 // 加入設定檔
 builder.Configuration
     .AddJsonFile("user_settings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("folder_settings.json", optional: true, reloadOnChange: true); // 可選（已自動產生）
+    .AddJsonFile("folder_settings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("config.json", optional: true, reloadOnChange: true); 
 
 // 表單大小與 Kestrel 限制
 builder.Services.Configure<FormOptions>(options =>

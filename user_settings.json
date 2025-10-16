@@ -1,10 +1,16 @@
-﻿{
-    "Users":  [
-                  {
-                      "Username":  "admin",
-                      "Permission":  "99",
-                      "Password":  "1234",
-                      "Role":  "Admin"
-                  }
-              ]
+{
+  "Users": [
+    {
+      "Username": "admin",
+      "Password": "1234",
+      "Role": "Admin",
+      "Permission": "99"
+    },
+    {
+      "Username": "marty",
+      "Password": "1234",
+      "Role": "User",
+      "Permission": null
+    }
+  ]
 }

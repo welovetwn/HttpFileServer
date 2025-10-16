@@ -1,5 +1,6 @@
 // 檔案路徑：HttpFileServer\Controllers\Api\FolderApiController.cs
 
+using HttpFileServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
@@ -12,10 +13,20 @@ namespace HttpFileServer.Controllers.Api
     [Route("api/folders")]
     public class FolderApiController : ControllerBase
     {
+        private readonly ConfigService _configService;
+
+        public FolderApiController(ConfigService configService)
+        {
+            _configService = configService;
+        }
+
         [HttpGet]
         public IActionResult GetSubFolders([FromQuery] string? path)
         {
-            string root = Directory.GetCurrentDirectory();
+            string root = _configService.GetBaseFolderPath(); // ✅ 修正點
+            if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+                return NotFound(new { success = false, error = "Base folder not found" });
+
             string target = string.IsNullOrWhiteSpace(path)
                 ? root
                 : Path.GetFullPath(Path.Combine(root, path));

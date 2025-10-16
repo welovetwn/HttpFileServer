@@ -131,8 +131,25 @@ namespace HttpFileServer.Controllers
         [HttpGet]
         public IActionResult AddFolder()
         {
+            var basePath = _configService.GetBaseFolderPath();
+
+            if (string.IsNullOrWhiteSpace(basePath) || !Directory.Exists(basePath))
+            {
+                TempData["ErrorMessage"] = "⚠ 無法讀取 BaseFolderPath，請檢查 config.json";
+                return RedirectToAction("Index");
+            }
+
+            // 取得 base 目錄下的子資料夾清單
+            var subDirs = Directory.GetDirectories(basePath, "*", SearchOption.TopDirectoryOnly)
+                .Select(d => Path.GetRelativePath(basePath, d))
+                .ToList();
+
+            ViewBag.BaseFolder = basePath;
+            ViewBag.SubFolders = subDirs;
+
             return View();
         }
+
 
         // 新增資料夾(表單POST)
         [HttpPost]
@@ -144,16 +161,46 @@ namespace HttpFileServer.Controllers
                 return RedirectToAction("AddFolder");
             }
 
+            var basePath = _configService.GetBaseFolderPath();
+
+            if (string.IsNullOrWhiteSpace(basePath) || !Directory.Exists(basePath))
+            {
+                TempData["ErrorMessage"] = "系統尚未正確設定 BaseFolderPath，請聯絡管理者";
+                return RedirectToAction("AddFolder");
+            }
+
+            // 組合實體路徑
+            var combinedPath = Path.GetFullPath(Path.Combine(basePath, path, folderName));
+
+            // 安全檢查：防止目錄穿越
+            if (!combinedPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "非法路徑，請確認輸入是否正確";
+                return RedirectToAction("AddFolder");
+            }
+
+            try
+            {
+                if (!Directory.Exists(combinedPath))
+                    Directory.CreateDirectory(combinedPath); // 建立實體資料夾
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"建立資料夾失敗: {ex.Message}";
+                return RedirectToAction("AddFolder");
+            }
+
             _configService.AddFolder(new SharedFolder
             {
                 Name = folderName,
-                Path = path,
-                AccessList = new List<FolderAccess>() // ⛔ 不再處理使用者清單
+                Path = Path.Combine(path, folderName), // 儲存在 config 中的「相對路徑」
+                AccessList = new List<FolderAccess>()
             });
 
             TempData["SuccessMessage"] = "新增資料夾成功";
             return RedirectToAction("Index");
         }
+
 
         // 修改資料夾授權(表單GET)
         [HttpGet]

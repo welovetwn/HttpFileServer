@@ -8,17 +8,29 @@ namespace HttpFileServer.Services
     {
         private readonly string _userSettingsPath;
         private readonly string _folderSettingsPath;
+        private readonly string _systemConfigPath;
 
         private UserSettings _userSettings;
         private FolderSettings _folderSettings;
+        private Config _systemConfig;
 
         public ConfigService(IConfiguration configuration, IWebHostEnvironment env)
         {
-            _userSettingsPath = Path.Combine(env.ContentRootPath, "user_settings.json");
-            _folderSettingsPath = Path.Combine(env.ContentRootPath, "folder_settings.json");
+            var root = env.ContentRootPath;
+            _userSettingsPath = Path.Combine(root, "user_settings.json");
+            _folderSettingsPath = Path.Combine(root, "folder_settings.json");
+            _systemConfigPath = Path.Combine(root, "config.json");
 
             _userSettings = LoadFromFile<UserSettings>(_userSettingsPath) ?? new UserSettings();
             _folderSettings = LoadFromFile<FolderSettings>(_folderSettingsPath) ?? new FolderSettings();
+            _systemConfig = LoadFromFile<Config>(_systemConfigPath) ?? new Config(); // 預設為空字串
+                                                                                     // 若 config.json 沒有設定 BaseFolderPath，則使用當前執行目錄
+            if (string.IsNullOrWhiteSpace(_systemConfig.BaseFolderPath))
+            {
+                Console.WriteLine("⚠️ 尚未設定 BaseFolderPath，將使用當前執行目錄作為預設路徑。");
+                _systemConfig.BaseFolderPath = root;  // 使用當前執行目錄
+                SaveToFile(_systemConfigPath, _systemConfig);  // 儲存到 config.json
+            }
         }
 
         private T? LoadFromFile<T>(string path)
@@ -40,6 +52,20 @@ namespace HttpFileServer.Services
             var options = new JsonSerializerOptions { WriteIndented = true };
             var json = JsonSerializer.Serialize(data, options);
             File.WriteAllText(path, json);
+        }
+
+        // 讀取 BaseFolderPath，給其他類別使用
+        public string GetBaseFolderPath()
+        {
+            // 檢查資料夾是否存在
+            if (!Directory.Exists(_systemConfig.BaseFolderPath))
+            {
+                Console.WriteLine($"⚠️ 設定的資料夾路徑 {_systemConfig.BaseFolderPath} 不存在，請重新設定。");
+                // 這裡可以提供進入設定頁面的鏈接或提示
+                // 也可以進一步引導用戶去手動設定
+            }
+
+            return _systemConfig.BaseFolderPath;
         }
 
         // ========== 使用者操作 ==========
@@ -131,7 +157,7 @@ namespace HttpFileServer.Services
                 {
                     Name = f.Name,
                     Path = f.Path,
-                    Permission = PermissionLevel.FullAccess
+                    Permission = PermissionLevel.Admin  // ✅ 修正：保留 Admin 權限，不要硬塞 FullAccess
                 }).ToList();
             }
 
@@ -153,5 +179,6 @@ namespace HttpFileServer.Services
                 .Where(f => f != null)
                 .ToList()!;
         }
+
     }
 }
