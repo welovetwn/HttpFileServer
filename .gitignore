@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /HttpFileServer_publish.zip
 /_publish_tmp
+/restart.flag
