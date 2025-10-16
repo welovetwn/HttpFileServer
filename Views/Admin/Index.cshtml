@@ -1,65 +1,99 @@
 @* /Views/Admin/Index.cshtml *@
+@model HttpFileServer.Models.AdminViewModel
 @{
     ViewData["Title"] = "管理首頁";
 }
 
 <h2>@ViewData["Title"]</h2>
 
-<div class="mb-3">
-    <a href="/Admin/AddUser" class="btn btn-primary">新增使用者</a>
-    <a href="/Admin/AddFolder" class="btn btn-success">新增資料夾</a>
+@if (User.IsInRole("Admin"))
+{
+    <!-- 伺服器控制區 - 危險操作 -->
+    <div class="card border-danger mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">⚠️ 伺服器控制（危險操作）</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Shutdown" asp-controller="Admin" method="post" class="d-inline"
+                  onsubmit="return confirm('⚠️ 確定要關閉伺服器嗎？');">
+                <button type="submit" class="btn btn-danger me-2">🛑 關閉伺服器</button>
+            </form>
+            <form asp-action="Restart" asp-controller="Admin" method="post" class="d-inline"
+                  onsubmit="return confirm('🔁 確定要重新啟動伺服器嗎？');">
+                <button type="submit" class="btn btn-warning">🔁 重啟伺服器</button>
+            </form>
+        </div>
+    </div>
+}
+
+<!-- 使用者管理區 -->
+<div class="card border-primary mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>使用者列表</h3>
+            <a href="/Admin/AddUser" class="btn btn-primary">新增使用者</a>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>帳號</th>
+                    <th>角色</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>@user.Username</td>
+                        <td>@user.Role</td>
+                        <td>
+                            <a href="/Admin/EditUser?username=@user.Username" class="btn btn-warning btn-sm">修改密碼</a>
+                            <form method="post" action="/Admin/DeleteUser" class="d-inline">
+                                <input type="hidden" name="username" value="@user.Username" />
+                                <button type="submit" class="btn btn-danger btn-sm">刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<h3>使用者列表</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>帳號</th>
-            <th>角色</th>
-            <th>操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model.Users)
-        {
-            <tr>
-                <td>@user.Username</td>
-                <td>@user.Role</td>
-                <td>
-                    <a href="/Admin/EditUser?username=@user.Username" class="btn btn-warning btn-sm">修改密碼</a>
-                    <form method="post" action="/Admin/DeleteUser" class="d-inline">
-                        <input type="hidden" name="username" value="@user.Username" />
-                        <button type="submit" class="btn btn-danger btn-sm">刪除</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<!-- 資料夾管理區 -->
+<div class="card border-success mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>資料夾列表</h3>
+            <a href="/Admin/AddFolder" class="btn btn-success">新增資料夾</a>
+        </div>
 
-<h3>資料夾列表</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>資料夾名稱</th>
-            <th>路徑</th>
-            <th>操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var folder in Model.Folders)
-        {
-            <tr>
-                <td>@folder.Name</td>
-                <td>@folder.Path</td>
-                <td>
-                    <a href="/Admin/EditFolder?folderName=@folder.Name" class="btn btn-warning btn-sm">修改授權</a>
-                    <form method="post" action="/Admin/DeleteFolder" class="d-inline">
-                        <input type="hidden" name="folderName" value="@folder.Name" />
-                        <button type="submit" class="btn btn-danger btn-sm">刪除</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>資料夾名稱</th>
+                    <th>路徑</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var folder in Model.Folders)
+                {
+                    <tr>
+                        <td>@folder.Name</td>
+                        <td>@folder.Path</td>
+                        <td>
+                            <a href="/Admin/EditFolder?folderName=@folder.Name" class="btn btn-warning btn-sm">修改授權</a>
+                            <form method="post" action="/Admin/DeleteFolder" class="d-inline">
+                                <input type="hidden" name="folderName" value="@folder.Name" />
+                                <button type="submit" class="btn btn-danger btn-sm">刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

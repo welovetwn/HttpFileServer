@@ -1,11 +1,6 @@
 ﻿# HttpFileServer
 
 ## 🧩 ToDo Issue
-- 新增帳號時Admin要預設寫入 Permission "99"
-- Admin(Permission "99")可shutdown結束系統
-- Admin(Permission "99")可restart重起系統
-- Admin/AddFolder 新增資料夾要取消輸入"允許的使用者"欄,已改在EditFolder中處理了
-- Login 畫面出現"註冊",暫時先取消好了
 - 其他的有空再想
 
 一個基於 .NET 的簡易 HTTP 檔案伺服器 / 共用平台，支援權限管理、靜態檔案分享、管理界面與伺服器關閉功能。

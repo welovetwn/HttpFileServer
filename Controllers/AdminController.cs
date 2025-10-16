@@ -4,6 +4,7 @@ using HttpFileServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -306,6 +307,44 @@ namespace HttpFileServer.Controllers
                 TempData["SuccessMessage"] = "刪除資料夾成功";
             }
             return RedirectToAction("Index");
+        }
+
+        [HttpPost("restart")]
+        public IActionResult Restart()
+        {
+            var permissionClaim = User.Claims.FirstOrDefault(c => c.Type == "PermissionLevel");
+            if (permissionClaim == null || !int.TryParse(permissionClaim.Value, out int level))
+                return Unauthorized("使用者無權限資訊");
+
+            if (level < (int)PermissionLevel.Admin)
+                return Forbid("權限不足，只有 Admin 可重新啟動伺服器");
+
+            string exePath = Environment.ProcessPath!;
+            string arguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1));
+
+            new Thread(() =>
+            {
+                Thread.Sleep(1000);
+
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = exePath,
+                        Arguments = arguments,
+                        UseShellExecute = true
+                    };
+                    Process.Start(psi);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("⚠️ 重啟失敗：" + ex.Message);
+                }
+
+                _lifetime.StopApplication();
+            }).Start();
+
+            return Ok(new { message = "🔁 系統即將重新啟動..." });
         }
 
         [HttpPost("shutdown")]
